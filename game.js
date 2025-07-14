@@ -1,5 +1,5 @@
-import chalk from 'chalk';
-import readlineSync from 'readline-sync';
+import chalk from 'chalk'; // console.log 로 출력되는 글씨의 색을 바꿀 수 있음
+import readlineSync from 'readline-sync'; // nodejs로 부터 입력 받기
 
 const final_stage = 20; // 최종 스테이지 수치 ; 전역변수 선언
 
