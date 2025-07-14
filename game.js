@@ -1,12 +1,14 @@
 import chalk from 'chalk';
 import readlineSync from 'readline-sync';
 
+const final_stage = 20; // 최종 스테이지 수치 ; 전역변수 선언
+
 class Player { // Player의 스테이터스 클래스
   constructor() {
     this.hp = 100; // 플레이어의 초기 현재 hp
     this.maxhp = 100; // 플레이어의 초기 최대 hp
     this.damage = 20; // 플레이어의 초기 공격력
-
+    //this.potions = 10; // 플레이어가 소유한 포션의 개수 초기값 ; 추후 추가 예정
   }
 
   //attack() {
@@ -29,18 +31,72 @@ class Monster { // Monster의 스테이터스 클래스
 
 //////////////////////////////////////////////////////////////////////
 
-function displayStatus(stage, player, monster) {
-  console.log(chalk.magentaBright(`\n=== Current Status ===`));
-  console.log(
-    chalk.cyanBright(`| Stage: ${stage} `) +
-    chalk.blueBright(
-      `| Player HP: ${player.hp}, Attack: ${player.damage} `,
-    ) +
-    chalk.redBright(
-      `| Monster HP: ${monster.hp}, Attack: ${monster.damage}|`,
-    ),
-  );
-  console.log(chalk.magentaBright(`=====================\n`));
+function displayStatus(stage=0, player, monster=null, hp_up = 0, damage_up = 0) {
+  if(stage === final_stage){
+    console.log(chalk.redBright(`XXXXXXXXX Boss Stage XXXXXXXXX`));
+  }
+  else{
+    console.log(chalk.magentaBright(`\n======= Current Status =======`));
+  }
+  if(monster !== null && stage !==0){ // 전투용 스테이터스창
+    // 스테이지와 몬스터값이 정상적으로 존재한다면 반환
+    // ex) displayStatus(stage, player, monster) : 뒤에 스탯 증가치는 넣지 않으면 default값 대입
+    console.log(
+      chalk.cyanBright(`| Stage: ${stage} |\n`) +
+      chalk.blueBright(
+        `| Player HP: ${player.hp}, Attack: ${player.damage}|\n`,
+      ) +
+      chalk.redBright(
+        `| Monster HP: ${monster.hp}, Attack: ${monster.damage}|`,
+      ),
+    );
+  }
+
+  else if (hp_up === 0 && damage_up === 0) { // 현재 플레이어의 스탯창
+    // player 스탯만 필요하고 전투 상태가 아니므로 스테이지값에 0 대입
+    // ex) displayStatus(0, player) : 나머지는 직접 대입 않고 default값으로 자동대입
+    console.log(
+      chalk.cyanBright(`| Player HP: ${player.hp}/${player.maxhp} `) +
+      chalk.cyanBright(` |\n| Attack: ${player.damage} `) ,
+      chalk.cyanBright(` |`) 
+    );
+  }
+
+  else { // 현재 플레이어의 스탯 증가 확인창
+    // 전투상황이 아닌 전투 종료 후 나오는 창
+    // ex) displayStatus(0, player, null, hp_up, damage_up)
+    //   : 전투창이 출력 되지 않도록 맞는 값 대입 후 스탯 증가치 입력
+    console.log(
+      chalk.cyanBright(`| Player HP: ${player.hp}/${player.maxhp} (`) +
+      chalk.blueBright(`+ ${hp_up} `) +
+      chalk.cyanBright(`) |\n| Attack: ${player.damage} (`) ,
+      chalk.blueBright(`+ ${damage_up} `) +
+      chalk.cyanBright(`) |`) 
+    );
+  }
+
+  if(stage === final_stage){
+    console.log(chalk.redBright(`XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n`));
+  }
+  else{
+    console.log(chalk.magentaBright(`==============================\n`));
+  }
+}
+
+/////////////////////////////////////////////////////////////////////
+
+function Status_Up(player, hp_up=20 + Math.floor(30*Math.random()), damage_up=5 + Math.floor(15*Math.random())) {
+  // let hp_up = 20 + Math.floor(30*Math.random()); // 최소증가값:20 ~ 최대증가값:50
+  // let damage_up =5 + Math.floor(15*Math.random()); // 최소증가값:5 ~ 최대증가값:20
+
+  player.maxhp += hp_up; // 최대 체력 증가
+  player.hp += (Math.floor(0.05*player.maxhp) + hp_up); 
+  // 현재 체력에 최대 체력 증가분과 최대 체력의 1할 의 합 만큼 증가
+  if(player.hp >= player.maxhp) { // 현재 체력이 최대 체력보다 클 경우
+    player.hp = player.maxhp; 
+  }
+  player.damage += damage_up; // 공격력 증가
+  displayStatus(0, player, null, hp_up, damage_up);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -51,11 +107,17 @@ const battle = async (stage, player, monster) => {
   // 스테이지에 따른 몬스터의 능력치 선설정
   //player.attack(); // 플레이어 공격력 변수 생성
 
-  // 스테이지에 따른 증가 척도 : 최소값의 2배수를 최댓값으로 하여 난수 곱에 따라 최솟값과 최대값 사이의 증가값을 더함
-  monster.hp += Math.floor((1 + Math.random()) * (stage - 1) * 8); // 스테이지에 따라 몬스터 HP 증가 ; 최소증가값:8
-  //monster.attack(); // 몬스터 공격력 변수 생성
-  monster.damage += Math.floor((1 + Math.random()) * (stage - 1) * 5); // 스테이지에 따라 몬스터 공격력 증가 ; 최소증가값:10
-
+  if(stage === final_stage){ // 최종전:보스 몬스터
+    monster.hp *= 10; // 기본의 10배
+    monster.damage *= 20; // 기본의 20배
+  }
+  else{
+    // 스테이지에 따른 증가 척도 : 최소값의 2배수를 최댓값으로 하여 난수 곱에 따라 최솟값과 최대값 사이의 증가값을 더함
+    monster.hp += Math.floor((1 + Math.random()) * (stage - 1) * 8); // 스테이지에 따라 몬스터 HP 증가 ; 최소증가값:8
+    //monster.attack(); // 몬스터 공격력 변수 생성
+    monster.damage += Math.floor((1 + Math.random()) * (stage - 1) * 5); // 스테이지에 따라 몬스터 공격력 증가 ; 최소증가값:10
+  }
+  
   let battle_end = false; // 전투 종료 변수 선언 및 초기화
   while(1) { // 조건문이 참인 한 ,계속 루프
 
@@ -82,14 +144,16 @@ const battle = async (stage, player, monster) => {
             logs.push(chalk.green(`몬스터에게 ${player.damage}의 데미지를 입혔습니다.`));
                
             if (monster.hp <= 0) {
+                monster.hp = 0;
                 battle_end = true;
                 break; 
-            }
+              }
 
             player.hp -= monster.damage;
             logs.push(chalk.red(`몬스터가 ${monster.damage}의 데미지를 입혔습니다.`));
 
             if (player.hp <= 0) { 
+              player.hp = 0;
               battle_end = true; 
             } 
 
@@ -97,17 +161,12 @@ const battle = async (stage, player, monster) => {
 
 
         case '2': // 연속 공격 ; 각 공격은 확률적으로 실패할 수 있음
-          let double_success = 50; // 연속 공격 성공 확률 50%
+          let double_success = 40; // 연속 공격 성공 확률 60%
           for(let i=0; i<2; i++){ // 연속 공격 2회
             let double_attack = Math.random() *100;
             if( double_attack >= double_success){
               monster.hp -= player.damage;
               logs.push(chalk.green(`몬스터에게 ${player.damage}의 데미지를 입혔습니다.`));
-
-              if (monster.hp <= 0) {
-                battle_end = true;
-                break; 
-              }
 
             }
             else{
@@ -115,11 +174,18 @@ const battle = async (stage, player, monster) => {
             }
           }
 
+          if (monster.hp <= 0) {
+                monster.hp = 0;
+                battle_end = true;
+                break; 
+              }
+
           player.hp -= monster.damage;
           logs.push(chalk.red(`몬스터가 ${monster.damage}의 데미지를 입혔습니다.`));
 
           if (player.hp <= 0) { 
-              battle_end = true; 
+            player.hp = 0;
+            battle_end = true; 
           } 
           break;
         
@@ -131,23 +197,25 @@ const battle = async (stage, player, monster) => {
             let reflect_success = 2*defense_success; // 반격 성공 커트라인
             const defence_damage = 0.6*player.damage; // 반격 데미지
             if(defense_try >= reflect_success) {
-              monster.hp -= defence_damage ; // 방어 성공 시 몬스터에게 반격 데미지  
+              monster.hp -= defence_damage ; // 반격 성공 : 방어 성공 시 몬스터에게 반격 데미지  
               logs.push(chalk.green(`방어에 성공했습니다!\n몬스터에게 ${defence_damage}의 반격 데미지를 입혔습니다.`));
 
               if (monster.hp <= 0) {
+                monster.hp = 0;
                 battle_end = true;
                 break; 
               }
             }
-            else if(defense_try >= defense_success){
+            else if(defense_try >= defense_success){ // 방어만 성공
               logs.push(chalk.green(`방어에 성공했습니다!\n아무런 피해도 입지 않았습니다.`));
             }
             else{
               player.hp -= monster.damage; // 방어 실패 
               logs.push(chalk.red(`방어에 실패했습니다! \n몬스터가 ${monster.damage}의 데미지를 입혔습니다.`));
 
-              if (player.hp <= 0) { 
-              battle_end = true; 
+              if (player.hp <= 0) {
+                player.hp = 0; 
+                battle_end = true; 
               }
             }
             
@@ -158,12 +226,12 @@ const battle = async (stage, player, monster) => {
          
          let tryrun = Math.random() * 100;
 
-          if(stage === 10){
+          if(stage === final_stage){
             logs.push(chalk.yellow(`마지막 스테이지에서는 도망칠 수 없습니다.`));
             break; // switch 문에 대한 break
           }         
           
-          if(tryrun >= 70){
+          if(tryrun >= 80){ // 도망 성공 확률 20%
             logs.push(chalk.yellow(`성공적으로 도망쳤습니다.`));
             battle_end = true; // 도망 성공 시 전투 종료
             if(stage !== 1){
@@ -181,7 +249,8 @@ const battle = async (stage, player, monster) => {
             player.hp -= monster.damage; // 도망 실패 시 몬스터 공격
             logs.push(chalk.red(`몬스터가 ${monster.damage}의 데미지를 입혔습니다.`));
 
-            if (player.hp <= 0) { 
+            if (player.hp <= 0) {
+              player.hp = 0; 
               battle_end = true; 
               }
           }
@@ -192,7 +261,8 @@ const battle = async (stage, player, monster) => {
             logs.push(chalk.red('어이쿠! 넘어졌습니다. 약간의 데미지를 입습니다.'));
             player.hp -= 10;
 
-            if (player.hp <= 0) { 
+            if (player.hp <= 0) {
+              player.hp = 0; 
               battle_end = true; 
               }
 
@@ -204,16 +274,97 @@ const battle = async (stage, player, monster) => {
 
 //////////////////////////////////////////////////////////////////
 
+const event = async (stage, player, monster) => {
+  let logs = [];
+
+  console.clear();
+  displayStatus(0, player);
+
+  let what_event = Math.floor(Math.random() * 2); // 상황 결정 변수
+
+  if(what_event === 0){ // 휴식 스테이지
+    console.log(chalk.white(`안전해 보이는 공간이 나타났습니다.\n무엇을 할까요?\n`) +
+                chalk.white(`1. 휴식  2. 수련  ex. 통과`)
+                );
+
+    const todo = readlineSync.question(`>`);
+
+    console.clear();
+    if(todo === '1') {
+      console.log(chalk.green(`피곤했던 당신은 잠깐 눈을 붙입니다.\n휴식을 취하여 최대 체력의 50% 만큼 체력을 회복합니다.`));
+      let rest_hp = Math.floor(0.7 * player.maxhp); // 최대 체력의 70% 만큼 회복
+      player.hp += rest_hp; 
+      if(player.hp > player.maxhp) { // 현재 체력이 최대 체력보다 클 경우
+        player.hp = player.maxhp;
+      }
+      displayStatus(0, player);
+    }
+
+    else if(todo === '2') {
+      console.log(chalk.green(`가만히 있기도 뭐한 당신은 수련을 시작합니다\n조금 강해졌습니다.`));
+
+      Status_Up(player);
+    }
+
+    else{
+      console.log(chalk.yellow(`이런 곳에서 머뭇거릴 시간이 없습니다.\n당신은 바로 다음 장소로 이동합니다.`));
+    }
+  }
+
+  else{ // 보물상자 스테이지 : 랜덤 박스
+    console.log(chalk.white(`당신은 상자를 발견했습니다.\n어떻게 할까요?\n1. 열어본다. 2. 지나친다`));
+    let box_open=readlineSync.question(`>`);
+    if(box_open === 'y' || box_open === 'Y' || box_open === '1'){
+      let box_in = Math.floor(Math.random() * 3)
+      if(box_in === 1){
+        console.log(chalk.red(`상자가 갑자기 달려듭니다!\n최대체력의 절반의 데미지를 받습니다.`));
+        player.hp -= Math.floor(0.5 * player.maxhp);
+        if(player.hp <=0){ 
+          return; 
+        }
+        console.log(chalk.red(`상자가 다시 공격 해옵니다.`));
+        readlineSync.question(`Press Enter to continue \n`);
+
+        await battle(stage, player, monster);
+
+        if(player.hp <=0 || monster.hp<=0){ 
+          return; 
+        }
+      }
+      else if(box_in === 2){
+        console.log(chalk.green(`상자 안에는 인챈트 주문서가 있었습니다.\n사용하여 장비를 강화합니다`));
+        Status_Up(player, 50, 20);
+        
+      }
+      else{
+        console.log(chalk.white(`상자는 비어 있습니다.`));
+      }
+      
+    }
+    else{
+      console.log(chalk.yellow(`상자를 무시하고 앞으로 나아갑니다.`));
+    }  
+  }
+}
+
+/////////////////////////////////////////////////////////////////
+
 export async function startGame() {
   console.clear();
   const player = new Player();
   let stage = 1;
 
-  while (stage <= 10) {
-    const monster = new Monster(stage); // stage에 따라 몬스터 생성
-    await battle(stage, player, monster);
+  while (stage <= final_stage) {
+    const monster = new Monster();
 
-
+    let situation = Math.floor(Math.random() * 100 );
+    if(situation >= 70 && stage !== 1 && stage !== final_stage){ // 첫 스테이지와 최종 스테이지를 제외한 모든 스테이지에서 30%확률로 출몰
+       await event(stage, player, monster);
+    }
+    else{
+      await battle(stage, player, monster);
+    }
+    
     // 스테이지 클리어 및 게임 종료 조건 과 처리
     if (player.hp <= 0) { // 게임종료 ; 플레이어 패배
       console.log(chalk.red('플레이어가 쓰러졌습니다.\nGame Over'));
@@ -222,34 +373,20 @@ export async function startGame() {
 
     else if (monster.hp <= 0) { // 스테이지 클리어 ; 몬스터 처치
       console.log(chalk.green(`몬스터를 처치했습니다!\n스테이지 ${stage} 클리어! `));
-      if(stage !== 10) {
-        let hp_up = 20 + Math.floor(30*Math.random());
-        let damage_up =5 + Math.floor(15*Math.random()); 
+      if(stage !== final_stage) { 
         console.log(chalk.green(`스테이지 클리어로 능력치가 증가합니다.\n체력이 일부 회복됩니다.`));
-        
-        player.maxhp += hp_up; // 스테이지 클리어 시 최대 체력 증가
-        player.hp += (Math.floor(0.1*player.maxhp) + hp_up); // 스테이지 클리어 시 현재 체력에 최대 체력 증가분과 최대 체력의 1할 의 합 만큼 증가
-        
-        if(player.hp >= player.maxhp) { // 현재 체력이 최대 체력보다 클 경우
-          player.hp = player.maxhp; 
-        }
-        player.damage += damage_up; // 스테이지 클리어 시 공격력 증가
-        console.log(chalk.magentaBright(`======================`) +
-                    chalk.cyanBright(`\n플레이어 HP: ${player.maxhp} (`) + 
-                    chalk.blueBright(`+${hp_up}`) +
-                    chalk.cyanBright(`)\n공격력: ${player.damage} (`) +
-                    chalk.blueBright(`+${damage_up}`) +
-                    chalk.cyanBright(`)`) +
-                    chalk.magentaBright(`\n======================`));
+      
+        Status_Up(player);
 
         console.log(chalk.green(`다음 스테이지로 이동합니다.`));
 
         readlineSync.question(`Press Enter to go Next \n`);
         }
     }
-    else { // 대개, 도망쳤을 경우
-      console.log(chalk.yellow(`약간의 휴식을 취하여 hp를 회복합니다.`));
-      player.hp += Math.floor(0.1 * player.maxhp); 
+
+    else { // 도망쳤을 경우, 예외
+      //console.log(chalk.yellow(`약간의 휴식을 취하여 체력을 회복합니다.`));
+      //player.hp += Math.floor(0.1 * player.maxhp); 
       readlineSync.question(`Press Enter to continue \n`);
       continue;
     }
@@ -258,7 +395,7 @@ export async function startGame() {
   }
 
   // 모든 스테이지를 클리어했을 경우
-  if (stage > 10) {
+  if (stage > final_stage) {
   console.log(chalk.green('모든 스테이지를 클리어했습니다! 축하합니다!'));
   }
 }
