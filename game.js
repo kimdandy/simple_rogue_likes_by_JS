@@ -17,12 +17,7 @@ class Player { // Player의 스테이터스 클래스
     this.hp = hp; // 플레이어의 초기 현재 hp
     this.maxhp = hp; // 플레이어의 초기 최대 hp
     this.damage = damage; // 플레이어의 초기 공격력
-    //this.potions = 10; // 플레이어가 소유한 포션의 개수 초기값 ; 추후 추가 예정
   }
-  // attack() {
-  //   플레이어의 공격력
-  //   this.damage = 20; 
-  // }
 }
 
 
@@ -31,11 +26,6 @@ class Monster { // Monster의 스테이터스 클래스
     this.hp = 100; // 기본 몬스터 HP
     this.damage = 10; // 몬스터 기본 공격력(lv1 기준)
   }
-
-  //attack() {
-    // 몬스터의 공격력
-    //this.damage = 2.5; // 기본 몬스터 공격력
-  //}
 }
 
 
@@ -69,7 +59,7 @@ function displayStatus(stage=0, player, monster=null, hp_up = 0, damage_up = 0) 
     // player 스탯만 필요하고 전투 상태가 아니므로 스테이지값에 0 대입
     // ex) displayStatus(n, player) : 나머지는 직접 대입 않고 default값으로 자동대입
     console.log(
-      //chalk.cyanBright(`| Stage: ${stage} |\n`) +
+      
       chalk.cyanBright(`| Player HP: ${player.hp}/${player.maxhp} `) +
       chalk.cyanBright(` |\n| Attack: ${player.damage} `) ,
       chalk.cyanBright(` |`) 
@@ -81,7 +71,7 @@ function displayStatus(stage=0, player, monster=null, hp_up = 0, damage_up = 0) 
     // ex) displayStatus(0, player, null, hp_up, damage_up)
     //   : 전투창이 출력 되지 않도록 맞는 값 대입 후 스탯 증가치 입력
     console.log(
-      //chalk.cyanBright(`| Stage: ${stage} |\n`) +
+
       chalk.cyanBright(`| Player HP: ${player.hp}/${player.maxhp} (`) +
       chalk.blueBright(`+ ${hp_up} `) +
       chalk.cyanBright(`) |\n| Attack: ${player.damage} (`) ,
@@ -123,8 +113,6 @@ const battle = async (stage, player, monster) => {
   let logs = [];
 
   // 스테이지에 따른 몬스터의 능력치 선설정
-  //player.attack(); // 플레이어 공격력 변수 생성
-
   if(stage === final_stage){ // 최종전:보스 몬스터
     monster.hp *= 10; // 기본의 10배
     monster.damage *= 20; // 기본의 20배
@@ -132,7 +120,7 @@ const battle = async (stage, player, monster) => {
   else{
     // 스테이지에 따른 증가 척도 : 최소값의 2배수를 최댓값으로 하여 난수 곱에 따라 최솟값과 최대값 사이의 증가값을 더함
     monster.hp += Math.floor((1 + Math.random()) * (stage - 1) * 8); // 스테이지에 따라 몬스터 HP 증가 ; 최소증가값:8
-    //monster.attack(); // 몬스터 공격력 변수 생성
+    
     monster.damage += Math.floor((1 + Math.random()) * (stage - 1) * 5); // 스테이지에 따라 몬스터 공격력 증가 ; 최소증가값:10
   }
   
@@ -215,11 +203,11 @@ const battle = async (stage, player, monster) => {
         case '3': // 방어
           how_many_guard++;
           
-          let defense_success = 30; // 방어 성공 커트라인 
-          let defense_try = Math.random() * 100; // 방어 성공 여부 결정
+          const defense_success = 30; // 방어 성공 확률 70%
+          let defense_try = Math.random() * 100; // 방어 성공 여부 결정 변수
           
-          let reflect_success = 2*defense_success; // 반격 성공 커트라인
-          const defence_damage = 0.6*player.damage; // 반격 데미지
+          const reflect_success = 2*defense_success; // 반격 성공 확률 40%
+          const defence_damage = 0.6*player.damage; // 반격 데미지 : 데미지의 60%
           if(defense_try >= reflect_success) {
             monster.hp -= defence_damage ; // 반격 성공 : 방어 성공 시 몬스터에게 반격 데미지  
             logs.push(chalk.green(`방어에 성공했습니다!\n몬스터에게 ${defence_damage}의 반격 데미지를 입혔습니다.`));
@@ -246,7 +234,7 @@ const battle = async (stage, player, monster) => {
           break; // switch 문에 대한 break
 
 
-        case '4': // 도망 : 예제에서는 일정확률로 다음 스테이지로 넘어가도록 하지만 도망은 후퇴로 변경함
+        case '4': // 도망 
          let tryrun = Math.random() * 100;
 
           if(stage === final_stage){
@@ -254,18 +242,8 @@ const battle = async (stage, player, monster) => {
             break; // switch 문에 대한 break
           }         
           
-          if(tryrun >= 80){ // 도망 성공 확률 20%
-            logs.push(chalk.yellow(`성공적으로 도망쳤습니다.`));
-            battle_end = true; // 도망 성공 시 전투 종료
-            if(stage !== 1){
-              logs.push(chalk.yellow(`이전 스테이지로 돌아갑니다.`));
-              stage--;
-            }
-            else { 
-              logs.push(chalk.yellow(`해당 스테이지에 다시 도전합니다.`));
-            }
-
-            
+          if(tryrun >= 70){ // 도망 성공 확률 30%
+            logs.push(chalk.yellow(`성공적으로 도망쳤습니다.`));     
           }
           else{
             logs.push(chalk.red(`도망에 실패했습니다!`));
@@ -287,9 +265,7 @@ const battle = async (stage, player, monster) => {
             if (player.hp <= 0) {
               player.hp = 0; 
               battle_end = true; 
-              }
-
-            //break;     // default는 switch문 마지막에 실행되므로 break 필요 X
+            }
     }
   }
 
@@ -404,20 +380,20 @@ export async function startGame(init_hp, init_damage) {
     }
 
     else if (monster.hp <= 0) { // 스테이지 클리어 ; 몬스터 처치
-      console.log(chalk.green(`몬스터를 처치했습니다!\n스테이지 ${stage} 클리어! `));
+      
 
       if(stage !== final_stage) { 
-        console.log(chalk.green(`스테이지 클리어로 능력치가 증가합니다.\n체력이 일부 회복됩니다.`));
+        console.log(chalk.green(`몬스터를 처치했습니다!\n스테이지 ${stage} 클리어! `) +
+        chalk.green(`스테이지 클리어로 능력치가 증가합니다.\n체력이 일부 회복됩니다.`));
       
         Status_Up(player);
 
         console.log(chalk.green(`다음 스테이지로 이동합니다.`));
 
-        readlineSync.question(`Press Enter to go Next! \n`);
       }
 
       else{
-        console.log(chalk.green('모든 스테이지를 클리어했습니다! 축하합니다!'));
+        console.log(chalk.green('보스 몬스터를 처치헀습니다!\n모든 스테이지를 클리어했습니다! 축하합니다!'));
         readlineSync.question(`Press Enter to continue \n`)
         startt();
         break;
@@ -425,12 +401,7 @@ export async function startGame(init_hp, init_damage) {
 
     }
 
-    else { // 도망쳤을 경우, 예외
-
-      readlineSync.question(`Press Enter to go Next!\n`);
-    }
-
-    //readlineSync.question(`Press Enter to go Next\n`);
+    readlineSync.question(`Press Enter to go Next\n`);
 
     stage++;
   }
@@ -439,37 +410,32 @@ export async function startGame(init_hp, init_damage) {
 
 /////////////////////////////////////////////////////////////////
 
-export function collection(){
+export function achievements(){
   console.log(`\n업적 모음\n`);
   
-  let col_1 = false;
-  if(how_many_attack>10 || col_1 === true){
-    col_1 = true;
+
+  if(how_many_attack>10){
     console.log(chalk.green(` 1. 공격은 최고의 방어\n`));
   }
   else{
     console.log(chalk.gray(` 1. ??? ??? ??\n`));
   }
 
-  let col_2 = false;
-  if(how_many_attack===0 && how_many_guard !== 0 || col_2 === true){
-    col_2 = true;
-    console.log(chalk.green(` 2. 평화주의자\n`));
+
+  if(how_many_guard > 0){
+    console.log(chalk.green(` 2. 완벽한 철벽\n`));
   }
   else{
     console.log(chalk.gray(` 2. ?????\n`));
   }
 
-  let col_3 = false;
-  if(how_many_run > 10 || col_2 === true){
-    col_3 = true;
+  if(how_many_run > 10){
     console.log(chalk.green(` 3. 도주의 달인\n`));
   }
   else{
     console.log(chalk.gray(` 3. ??? ??\n`));
   }
 
-  //console.log(chalk.gray(``))
   readlineSync.question(`\n`) ;
   startt();
 
