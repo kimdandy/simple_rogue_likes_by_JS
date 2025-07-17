@@ -84,7 +84,7 @@
     ; https://www.npmjs.com/package/figlet
  - readlineSync : 콘솔창을 통해 입력을 받을 수 있도록 해주는 라이브러리로,
 
-    게임을 진행에 가장 필수적임
+    게임 진행에 가장 필수적임
  
     ; https://www.npmjs.com/package/readline-sync
 
