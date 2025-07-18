@@ -138,8 +138,9 @@ const battle = async (stage, player, monster) => {
     
     console.log(
       chalk.green(
-        `\n1. 공격 2. 연속 공격, 3. 방어, 4. 물약 사용( ${player.potions} ), 5. 도망`,
-      ),
+        `\n1. 공격 2. 연속 공격, 3. 방어, 4. 물약 사용( `) +
+      chalk.gray(`${player.potions}`) +
+      chalk.green(`), 5. 도망`,),
     );
     const choice = readlineSync.question(`> `); //당신의 선택은? 
 
@@ -242,7 +243,7 @@ const battle = async (stage, player, monster) => {
             logs.push(`물약을 사용합니다`);
             player.potions --;
             player.hp += 100;
-            if(player.hp > player.maxhp){
+            if(player.hp > player.maxhp){ // 최대 체력을 넘어가면 최대체력에 맞춤
               player.hp = player.maxhp;
             }
             logs.push(chalk.green(`체력을 100 회복합니다.`));
@@ -260,7 +261,6 @@ const battle = async (stage, player, monster) => {
             player.hp = 0;
             battle_end = true; 
           } 
-
           break; 
             
 
@@ -344,7 +344,7 @@ const event = async (stage, player, monster) => {
     console.log(chalk.white(`당신은 상자를 발견했습니다.\n어떻게 할까요?\n1. 열어본다. 2. 지나친다`));
     let box_open=readlineSync.question(`>`);
     if(box_open === 'y' || box_open === 'Y' || box_open === '1'){
-      let box_in = Math.floor(Math.random() * 4)
+      let box_in = Math.floor(Math.random() * 5)
       if(box_in === 1){
         console.log(chalk.red(`상자가 갑자기 달려듭니다!\n최대체력의 절반의 데미지를 받습니다.`));
         player.hp -= Math.floor(0.5 * player.maxhp);
@@ -366,9 +366,16 @@ const event = async (stage, player, monster) => {
         
       }
       else if(box_in === 3){
-        console.log(chalk.green(`상자 안에는 엘릭서 가 들어 있었습니다.\n복용하여 체력을 모두 회복합니다.`));
+        console.log(chalk.green(`상자 안에는 회복용 아티팩트 가 들어 있었습니다.\n사용하여 체력을 모두 회복합니다.`));
         player.hp = player.maxhp;
         displayStatus(0, player);
+      }
+      else if(box_in === 4){
+        console.log(chalk.green(`상자 안에는 물약이 몇 개 들어있습니다.`));
+        let potions_in_the_box = 2 + Math.floor(Math.random() * 8);
+        player.potions += potions_in_the_box;
+        console.log(chalk.green(`물약을 챙겼습니다.`) + 
+                   chalk.gray(`( 물약 개수 : ${player.potions} )`));
       }
       else{
         console.log(chalk.white(`상자는 비어 있습니다.`));
