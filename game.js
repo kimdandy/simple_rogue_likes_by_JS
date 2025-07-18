@@ -11,20 +11,22 @@ let battle_end = false;
 let how_many_attack = 0; // 공격 횟수
 let how_many_guard = 0; // 방어 횟수
 let how_many_run = 0; // 도망 횟수
+let how_many_drink = 0; // 포션 사용 횟수
+
 
 class Player { // Player의 스테이터스 클래스
   constructor(hp, damage) {
     this.hp = hp; // 플레이어의 초기 현재 hp
     this.maxhp = hp; // 플레이어의 초기 최대 hp
     this.damage = damage; // 플레이어의 초기 공격력
+    this.potions = 10; // 플레이어의 초기 포션 소지 개수
   }
 }
-
 
 class Monster { // Monster의 스테이터스 클래스
   constructor() {
     this.hp = 100; // 기본 몬스터 HP
-    this.damage = 10; // 몬스터 기본 공격력(lv1 기준)
+    this.damage = 10; // 몬스터 기본 공격력(1단계 기준)
   }
 }
 
@@ -136,7 +138,7 @@ const battle = async (stage, player, monster) => {
     
     console.log(
       chalk.green(
-        `\n1. 공격 2. 연속 공격, 3. 방어, 4. 도망`,
+        `\n1. 공격 2. 연속 공격, 3. 방어, 4. 물약 사용( ${player.potions} ), 5. 도망`,
       ),
     );
     const choice = readlineSync.question(`> `); //당신의 선택은? 
@@ -235,8 +237,34 @@ const battle = async (stage, player, monster) => {
           
           break; // switch 문에 대한 break
 
+        case  `4`: // 물약 사용
+          if( player.potions > 0){
+            logs.push(`물약을 사용합니다`);
+            player.potions --;
+            player.hp += 100;
+            if(player.hp > player.maxhp){
+              player.hp = player.maxhp;
+            }
+            logs.push(chalk.green(`체력을 100 회복합니다.`));
+          }
+          else{
+            //player.potions < 0 ? player.potions = 0 : ; // 예외처리
+            logs.push(chalk.yellow(`물약이 없습니다.`));
+            continue;
+          }
 
-        case '4': // 도망 
+          player.hp -= monster.damage;
+          logs.push(chalk.red(`몬스터가 ${monster.damage}의 데미지를 입혔습니다.`));
+
+          if (player.hp <= 0) { 
+            player.hp = 0;
+            battle_end = true; 
+          } 
+
+          break; 
+            
+
+        case '5': // 도망 
          let tryrun = Math.random() * 100;
 
           if(stage === final_stage){
@@ -436,6 +464,13 @@ export function achievements(){
   }
   else{
     console.log(chalk.gray(` 3. ??? ??\n`));
+  }
+
+  if(how_many_drink > 10){
+    console.log(chalk.green(` 4. 물약 러버\n`));
+  }
+  else{
+    console.log(chalk.gray(` 4. ?? ??\n`));
   }
 
   readlineSync.question(`\n`) ;
