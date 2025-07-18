@@ -12,7 +12,7 @@ function displayLobby() {
     // 타이틀 텍스트
     console.log(
         chalk.cyan(
-            figlet.textSync('RL- Javascript', {
+            figlet.textSync('Text_Rogue_likes', { //RL- Javascript
                 font: 'Standard',
                 horizontalLayout: 'default',
                 verticalLayout: 'default'
@@ -25,7 +25,7 @@ function displayLobby() {
     console.log(line);
 
     // 게임 이름
-    console.log(chalk.yellowBright.bold('CLI 게임에 오신것을 환영합니다!'));
+    console.log(chalk.yellowBright.bold('텍스트-로그라이크 게임에 오신것을 환영합니다!')); //CLI 
 
     // 설명 텍스트
     console.log(chalk.green('옵션을 선택해주세요.'));
