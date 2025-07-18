@@ -140,7 +140,7 @@ const battle = async (stage, player, monster) => {
       chalk.green(
         `\n1. 공격 2. 연속 공격, 3. 방어, 4. 물약 사용( `) +
       chalk.gray(`${player.potions}`) +
-      chalk.green(`), 5. 도망`,),
+      chalk.green(` ), 5. 도망`,),
     );
     const choice = readlineSync.question(`> `); //당신의 선택은? 
 
@@ -273,7 +273,8 @@ const battle = async (stage, player, monster) => {
           }         
           
           if(tryrun >= 70){ // 도망 성공 확률 30%
-            logs.push(chalk.yellow(`성공적으로 도망쳤습니다.`));     
+            logs.push(chalk.yellow(`성공적으로 도망쳤습니다.`));
+            battle_end = true;
           }
           else{
             logs.push(chalk.red(`도망에 실패했습니다!`));
