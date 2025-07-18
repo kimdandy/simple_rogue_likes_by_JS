@@ -208,18 +208,20 @@ const battle = async (stage, player, monster) => {
           
           const reflect_success = 2*defense_success; // 반격 성공 확률 40%
           const defence_damage = 0.6*player.damage; // 반격 데미지 : 데미지의 60%
-          if(defense_try >= reflect_success) {
+          if(defense_try >= defense_success){ 
+            if(defense_try >= reflect_success) {
             monster.hp -= defence_damage ; // 반격 성공 : 방어 성공 시 몬스터에게 반격 데미지  
             logs.push(chalk.green(`방어에 성공했습니다!\n몬스터에게 ${defence_damage}의 반격 데미지를 입혔습니다.`));
 
-            if (monster.hp <= 0) {
-              monster.hp = 0;
-              battle_end = true;
-              break; 
+              if (monster.hp <= 0) {
+                monster.hp = 0;
+                battle_end = true;
+                break; 
+              }
             }
-          }
-          else if(defense_try >= defense_success){ // 방어만 성공
-            logs.push(chalk.green(`방어에 성공했습니다!\n아무런 피해도 입지 않았습니다.`));
+            else {// 방어만 성공
+              logs.push(chalk.green(`방어에 성공했습니다!\n아무런 피해도 입지 않았습니다.`));
+            }
           }
           else{
             player.hp -= monster.damage; // 방어 실패 
